@@ -78,6 +78,11 @@ const deletePlaceById = (req, res, next) => {
 }
 
 const updatePlace = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    throw new HttpError("Invalid input.", 422);
+  }
+  
   const { title, description } = req.body;
   const placeId = req.params.pid;
 
