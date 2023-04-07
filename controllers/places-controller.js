@@ -1,8 +1,9 @@
 const uuid = require("uuid/v4");
-const { validationResult } = require('express-validator');
+const { validationResult } = require("express-validator");
 
 const HttpError = require("../models/http-error");
-const getCoordsForAddress = require('../util/location');
+const getCoordsForAddress = require("../util/location");
+const Place = require("../models/place");
 
 let DUMMY_PlACES = [
   {
@@ -51,39 +52,43 @@ const getPlacesByUserId = (req, res, next) => {
 
 const creatPlace = async (req, res, next) => {
   const errors = validationResult(req);
-  if(!errors.isEmpty()) {
-    return next (new HttpError('Invalid input.', 422));
+  if (!errors.isEmpty()) {
+    return next(new HttpError("Invalid input.", 422));
   }
 
   const { title, description, address, creator } = req.body;
 
   const coordinates = await getCoordsForAddress(address);
 
-  const createdPlace = {
-    id: uuid(),
-    title: title,
-    description: description,
+  const createdPlace = new Place({
+    title,
+    description,
+    image:
+      "https://en.wikipedia.org/wiki/Drexel_University#/media/File:Anthony_J._Drexel_by_Moses_Ezekiel_(1844-1917)_-_Drexel_University_-_IMG_7320.JPG",
     location: coordinates,
-    address: address,
-    creator: creator,
-  };
+    address,
+    creator
+  });
 
-  DUMMY_PlACES.push(createdPlace);
+  try {
+    await createdPlace.save();
+  } catch(err) {
+    return next(new HttpError('Creating place failed.', 500));
+  }
 
   res.status(201).json({ place: createdPlace });
 };
 
 const deletePlaceById = (req, res, next) => {
-  
   const placeId = req.params.pid;
 
-  if( !DUMMY_PlACES.find(p => p.id === placeId)) {
-    throw new HttpError('Could not find a place.', 404);
+  if (!DUMMY_PlACES.find((p) => p.id === placeId)) {
+    throw new HttpError("Could not find a place.", 404);
   }
 
-  DUMMY_PlACES = DUMMY_PlACES.filter(p => p.id !== placeId);
-  res.status(200).json({ message: 'Deleted place.' });
-}
+  DUMMY_PlACES = DUMMY_PlACES.filter((p) => p.id !== placeId);
+  res.status(200).json({ message: "Deleted place." });
+};
 
 const updatePlace = (req, res, next) => {
   const errors = validationResult(req);
@@ -95,14 +100,14 @@ const updatePlace = (req, res, next) => {
   const placeId = req.params.pid;
 
   //a copy
-  const updatedPlace = {...DUMMY_PlACES.find(p => p.id === placeId)};
+  const updatedPlace = { ...DUMMY_PlACES.find((p) => p.id === placeId) };
   const placeIndex = DUMMY_PlACES.findIndex((p) => p.id === placeId);
   updatedPlace.title = title;
   updatedPlace.description = description;
-  
+
   DUMMY_PlACES[placeIndex] = updatedPlace;
 
-  res.status(200).json({place: updatedPlace});
+  res.status(200).json({ place: updatedPlace });
 };
 
 exports.getPlaceById = getPlaceById;
