@@ -1,4 +1,3 @@
-const uuid = require("uuid/v4");
 const { validationResult } = require("express-validator");
 
 const HttpError = require("../models/http-error");
@@ -100,7 +99,7 @@ const deletePlaceById = async (req, res, next) => {
 const updatePlace = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    throw new HttpError("Invalid input.", 422);
+    return next(new HttpError("Invalid input.", 422));
   }
 
   const { title, description } = req.body;
