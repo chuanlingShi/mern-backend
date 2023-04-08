@@ -20,7 +20,7 @@ const signup = async (req, res, next) => {
     return next(new HttpError("Invalid input.", 422));
   }
 
-  const { name, email, password, places } = req.body;
+  const { name, email, password } = req.body;
 
   let existingUser;
 
@@ -40,7 +40,7 @@ const signup = async (req, res, next) => {
     image:
       "https://en.wikipedia.org/wiki/Drexel_University#/media/File:Anthony_J._Drexel_by_Moses_Ezekiel_(1844-1917)_-_Drexel_University_-_IMG_7320.JPG",
     password,
-    places,
+    places: [],
   });
 
   try {
